@@ -1,10 +1,11 @@
 ﻿
 
 using System.ComponentModel;
+using System.Xml.Serialization;
 
 bool isrunning = true;
 
-List<double> viktlista = new List<double>();
+List<double> weightList = new List<double>();
 while (isrunning)
 
 {
@@ -27,13 +28,17 @@ while (isrunning)
             {
                 break;
             }
-            if (double.TryParse(input, out double vikt))
+            if (double.TryParse(input, out double weight))
             {
-                viktlista.Add(vikt);
-                Console.WriteLine($"Du lade in vikten {vikt} i listan.");
-                Console.WriteLine("Tryck 'D' för att ta bort den inlagda vikten eller 'B' för att bekrafta:");
-
-                                  
+                weightList.Add(weight);
+                Console.WriteLine($"Du lade in vikten {weight} i listan.");
+                Console.WriteLine("Tryck 'D' för att ta bort den inlagda vikten eller 'B' för att bekräfta:");
+                string choice = Console.ReadLine();
+                if (choice.ToLower() == "d")
+                {
+                    weightList.RemoveAt(weightList.Count-1);
+                    break;
+                }                         
             }
             else
             {
