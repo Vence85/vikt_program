@@ -1,17 +1,42 @@
 ﻿
 
-using System.ComponentModel;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Xml.Serialization;
+using System.Text.Json;
+
+// Metod för att spara viktlistan i en JSON-fil
+void SaveWeightList(List<double> weightList, string filePath)
+{
+    // Serialisera listan till en JSON-sträng
+    string jsonString = JsonSerializer.Serialize(weightList);
+    // Skriv JSON-strängen till filen
+    File.WriteAllText(filePath, jsonString);
+}
+
+// Metod för att läsa in viktlistan från en JSON-fil
+List<double> LoadWeightList(string filePath)
+{
+    if (File.Exists(filePath))
+    {
+        // Läs in hela filen som en sträng
+        string jsonString = File.ReadAllText(filePath);
+        // Deserialisera strängen till en lista med double
+        return JsonSerializer.Deserialize<List<double>>(jsonString);
+    }
+    else
+    {
+        // Om filen inte finns, returnera en tom lista
+        return new List<double>();
+    }
+}
+
+// Exempel på hur du kan använda dessa metoder i ditt program
+string filePath = "weights.json";
+
+// Vid programmets start, försök läsa in sparad data
+List<double> weightList = LoadWeightList(filePath);
 
 bool isrunning = true;
 
 double totalWeight = 0;
-double totalWeightDivided = 0;
-List<double> weightList = new List<double>();
 
 while (isrunning)
 
@@ -30,7 +55,7 @@ while (isrunning)
 
     switch (menyInput)
     {
-        // Saving input in list
+        // Saving input to list
         case "1":
             Console.WriteLine("Ange vikt eller skriv 'Q' för att go tillbaka till menyn:");
             Console.WriteLine("(Decimaltal bryts av med ett kommatecken!)");
@@ -41,18 +66,16 @@ while (isrunning)
             }
             else if (double.TryParse(input, out double weight))
             {
-                weightList.Add(weight);
-                Console.WriteLine($"Du lade in vikten {weight} i listan.");
-                Console.WriteLine("Tryck 'D' för att ta bort den inlagda vikten eller 'B' för att bekräfta:");
+                Console.WriteLine("Tryck 'D' för att göra om eller 'B' för att bekräfta:");
                 string choice = Console.ReadLine();
                 if (choice.ToLower() == "d")
                 {
-                    weightList.RemoveAt(weightList.Count - 1);
                     break;
                 }
                 else if (choice.ToLower() == "b")
                 {
-                    Console.WriteLine("Vikten lades in korrekt!");
+                    weightList.Add(weight);
+                    Console.WriteLine($"Du lade in vikten {weight} i listan.");
                     Thread.Sleep(2000);
                     break;
                 }
@@ -73,24 +96,34 @@ while (isrunning)
         case "2":
             if (weightList.Count() >= 7)
             {
-                List<double> lastSeven = weightList.GetRange(weightList.Count() -7, 7);
+                List<double> lastSeven = weightList.GetRange(weightList.Count() - 7, 7);
                 foreach (double n in lastSeven)
                 {
                     totalWeight = totalWeight + n;
                 }
-                totalWeightDivided = totalWeight / 7;
-                Console.WriteLine(totalWeightDivided);
-            }    
-            else
+                double totalWeightDivided = totalWeight / 7;
+                Console.WriteLine($"Din genomsittsvikt de senaste sju dagarna är {totalWeightDivided:0.0}!");
+                totalWeight = 0;
+            }
+            else if (weightList.Count() > 0)
             {
-                
+                int count = weightList.Count();
+                foreach (double n in weightList)
+                {
+                    totalWeight = totalWeight + n;
+                }
+                double totalWeightDividedX = totalWeight / count;
+                Console.WriteLine($"Du har {count} vägningar och ditt genomsnitt är {totalWeightDividedX:0.0}");
             }
 
-            foreach (var w in weightList)
-            { 
-                Console.WriteLine(w);
+            else
+            {
+                Console.WriteLine("Det finns inga vägningar sparade!");
+                Console.WriteLine("Tryck 'Enter' för att gå vidare");
+                Console.ReadKey();
+                break;
             }
-            
+
             Console.WriteLine("============================");
             Console.WriteLine("Tryck 'Enter' för att gå vidare");
             Console.ReadKey();
@@ -103,6 +136,8 @@ while (isrunning)
             break;
 
         case "q":
+            isrunning = false;
             break;
     }
+    SaveWeightList(weightList, filePath);
 }
